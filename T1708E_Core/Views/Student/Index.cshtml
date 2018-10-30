@@ -1,0 +1,201 @@
+﻿
+@{
+    ViewData["Title"] = "Student";
+}
+<br />
+<div class="alertInfo">
+
+</div>
+<div class="row justify-content-md-center">
+    
+    <div class="col col-lg-6">
+        <div class="card">
+            <h1 class="card-header text-center">Student</h1>
+            <div class="card-body">
+                <form id="my-form" method="post" action="javascript:void(0);" onsubmit="addStudent()">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Name</span>
+                        </div>
+                        <input type="text" class="form-control" id="student-name">
+                        <input type="text" id="student-id" disabled="disabled" placeholder="ID student" class="d-none" />
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Rollnumber</span>
+                        </div>
+                        <input type="text" class="form-control" id="student-rollnumber">
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="submit" class="form-control btn btn-outline btn-primary" id="create">
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="button" class="form-control btn btn-outline btn-warning" value="Edit" id="edit">
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="button" class="form-control btn btn-default" value="Close" onclick="closeInput()" id="close">
+                    </div>
+
+                    @*<input type="text" id="student-id" disabled="disabled" placeholder="ID student" />
+        <input type="text" id="student-name" placeholder="Name">
+        <input type="text" id="student-address" placeholder="Address">
+        <input type="text" id="student-email" placeholder="Email">
+        <input type="submit" value="Create" id="create">
+        <input type="button" value="Edit" id="edit">
+        <input type="button" value="Close" onclick="closeInput()" id="close">*@
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+    
+<br />
+<p id="counter"></p>
+<div>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Rollnumber</th>
+                <th scope="col">Edit</th>
+                <th scope="col">Delete</th>
+            </tr>
+        </thead>
+        <tbody id="todo"></tbody>
+    </table>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    const uri = 'api/student';
+    let todo = null;
+    function getCount(data) {
+        const el = $('#counter');
+        let name = 'student';
+        if (data) {
+            if (data > 1) {
+                name = 'students';
+            }
+            el.text(data + ' ' + name);
+        } else {
+            el.html(`No ${name}`);
+        }
+    }
+    $(document).ready(function () {
+        getData();
+        $('#edit').css({ 'display': 'none' });
+        $('#close').css({ 'display': 'none' });
+    });
+    function getData() {
+        $.ajax({
+            type: 'GET',
+            url: uri,
+            success: function (data) {
+                $('#todo').empty();
+                window.getCount(data.length);
+                $.each(data, function (key, item) {
+                    console.log(item)
+                    $(`<tr><td>${item.id}</td><td>${item.name}</td><td>${item.rollNumber}</td><td><button class="btn btn-warning" onclick="editStudent(${item.id
+                        })">Edit</button></td><td><button class="btn btn-danger" onclick="deleteStudent(${item.id})">Delete</button></td></tr>`).appendTo($('#todo'));
+                    console.log(item.name);
+                });
+
+                todo = data;
+            }
+        });
+    }
+
+    function addStudent() {
+        const item = {
+            'name': $('#student-name').val(),
+            'rollNumber': $('#student-rollnumber').val(),
+        };
+        $.ajax({
+            type: 'POST',
+            accepts: 'application/json',
+            url: 'api/student',
+            contentType: 'application/json',
+            data: JSON.stringify(item),
+            error: function (jqXhr, textStatus, errorThrown) {
+                alert('here');
+                alert_cus('danger', 'Thêm thông tin lỗi');
+            },
+            success: function (result) {
+                getData();
+                $('#student-name').val('');
+                $('#student-rollnumber').val('');
+                alert_cus('success', 'Thêm thông tin thành công');
+            }
+        });
+    }
+    function deleteStudent(id) {
+        if (confirm("Bạn chắc chắn muốn xóa")) {
+            $.ajax({
+                url: uri + '/' + id,
+                type: 'DELETE',
+                success: function (result) {
+                    getData();
+                    alert_cus('success', 'Xóa thông tin thành công');
+                },
+                error: function (result) {
+                    alert_cus('danger', 'Xóa thông tin Lỗi');
+                }
+            });
+        }
+        
+    }
+    function editStudent(id) {
+        $.each(todo, function (key, item) {
+            if (item.id === id) {
+                $('#student-id').val(item.id);
+                $('#student-name').val(item.name);
+                $('#student-rollnumber').val(item.rollNumber);
+            }
+        });
+        $('#edit').css({ 'display': 'block' });
+        $('#edit').attr('type','submit');
+        $('#close').css({ 'display': 'block' });
+        $('#create').css({ 'display': 'none' });
+        $('#create').attr('type', 'button');
+    }
+
+    $('#edit').click(function () {
+        const item = {
+            'name': $('#student-name').val(),
+            'rollNumber': $('#student-rollnumber').val()
+        };
+        console.log($('#student-id').val());
+        $.ajax({
+            url: uri + '/' + $('#student-id').val(),
+            type: 'PUT',
+            accepts: 'application/json',
+            contentType: 'application/json',
+            data: JSON.stringify(item),
+            success: function (result) {
+                getData();
+                alert_cus('success', 'Sửa thông tin thành công');
+            }
+        });
+        closeInput();
+        return false;
+    });
+    function closeInput() {
+        $('#edit').css({ 'display': 'none' });
+        $('#close').css({ 'display': 'none' });
+        $('#create').css({ 'display': 'block' });
+        $('#student-id').val('');
+        $('#student-name').val('');
+        $('#student-rollnumber').val('');
+    }
+
+    function alert_cus(type, content) {
+        console.log('alert');
+        var text = '<div class="alert alert-' + type + '" role="alert">' + content + '</div >';
+        $('.alertInfo').html(text);
+        $('.alertInfo').show();
+        setTimeout(function () {
+            $('.alertInfo').hide();
+        }, 5000);
+    }
+</script>
