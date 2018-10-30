@@ -27,7 +27,7 @@ namespace T1708E_Core
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<StudentContext>(opt =>
-                opt.UseSqlServer("Students"));
+                opt.UseSqlServer(Configuration.GetConnectionString("MyConnectionString")));
 
             services.Configure<CookiePolicyOptions>(options =>
             {

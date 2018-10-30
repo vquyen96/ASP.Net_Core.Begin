@@ -182,8 +182,11 @@
     });
     function closeInput() {
         $('#edit').css({ 'display': 'none' });
+        $('#edit').attr('type', 'button');
+
         $('#close').css({ 'display': 'none' });
         $('#create').css({ 'display': 'block' });
+        $('#create').attr('type', 'submit');
         $('#student-id').val('');
         $('#student-name').val('');
         $('#student-rollnumber').val('');
